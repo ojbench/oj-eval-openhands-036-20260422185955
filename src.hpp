@@ -174,9 +174,16 @@ private:
     void resize_zero(std::size_t n) { nbits = n; chunks.assign((nbits + 63) / 64, 0); }
     void set_bit(std::size_t n) { std::size_t idx = n >> 6, off = n & 63u; ensure_capacity(nbits?nbits:1); chunks[idx] |= (u64(1) << off); }
     void mask_to_size() {
-        if (nbits==0) return; std::size_t last = (nbits - 1) >> 6; std::size_t rem = nbits & 63u;
-        if (rem) chunks[last] &= ((u64(1) << rem) - 1);
-        chunks.resize((nbits + 63) / 64);
+        if (nbits == 0) { chunks.clear(); return; }
+        std::size_t need = (nbits + 63) / 64;
+        if (chunks.size() < need) chunks.resize(need, 0);
+        std::size_t last = need - 1;
+        std::size_t rem = nbits & 63u;
+        if (rem) {
+            u64 mask = ((u64(1) << rem) - 1);
+            chunks[last] &= mask;
+        }
+        if (chunks.size() > need) chunks.resize(need);
     }
     template<class Op>
     void op(const dynamic_bitset &o, Op F){
