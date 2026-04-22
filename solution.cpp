@@ -1,8 +1,13 @@
 #include <vector>
+#ifndef SJTU_DYNAMIC_BITSET_HPP
+#define SJTU_DYNAMIC_BITSET_HPP
+
 #include <cstring>
 #include <cstdint>
 #include <iostream>
 #include <algorithm>
+
+namespace sjtu {
 
 struct dynamic_bitset {
     using u64 = std::uint64_t;
@@ -48,7 +53,7 @@ struct dynamic_bitset {
         for (std::size_t i = 0; i < full; ++i) if (chunks[i] != 0) return false;
         std::size_t rem = nbits & 63u;
         if (rem) {
-            u64 mask = rem == 64 ? ~u64(0) : ((u64(1) << rem) - 1);
+            u64 mask = ((u64(1) << rem) - 1);
             if ((chunks[full] & mask) != 0) return false;
         }
         return true;
@@ -60,7 +65,7 @@ struct dynamic_bitset {
         for (std::size_t i = 0; i < full; ++i) if (chunks[i] != ~u64(0)) return false;
         std::size_t rem = nbits & 63u;
         if (rem) {
-            u64 mask = (rem == 64) ? ~u64(0) : ((u64(1) << rem) - 1);
+            u64 mask = ((u64(1) << rem) - 1);
             if ((chunks[full] & mask) != mask) return false;
         }
         return true;
@@ -84,12 +89,11 @@ struct dynamic_bitset {
     }
 
     dynamic_bitset &operator<<=(std::size_t n) {
-        if (n == 0 || nbits == 0) { nbits += n; return *this; }
+        if (n == 0) return *this;
         std::size_t old_n = nbits;
         std::size_t word = n >> 6;
         std::size_t rem = n & 63u;
         std::vector<u64> old = chunks;
-        // mask off unused bits in old last chunk
         if (old_n & 63u) {
             u64 mask = ((u64(1) << (old_n & 63u)) - 1);
             old[(old_n - 1) >> 6] &= mask;
@@ -107,7 +111,6 @@ struct dynamic_bitset {
                 chunks[dst + 1] |= (v >> (64 - rem));
             }
         }
-        // mask new last chunk to nbits
         mask_to_size();
         return *this;
     }
@@ -189,7 +192,6 @@ private:
             u64 mask = ((u64(1) << rem) - 1);
             chunks[last_idx] &= mask;
         }
-        // truncate extra chunks if any
         chunks.resize((nbits + 63) / 64);
     }
 
@@ -211,3 +213,5 @@ private:
         }
     }
 };
+
+} // namespace sjtu
