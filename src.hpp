@@ -124,6 +124,7 @@ struct dynamic_bitset {
 
     dynamic_bitset &set() {
         if (nbits==0) return *this;
+        ensure_capacity(nbits);
         std::size_t full = nbits >> 6;
         for (std::size_t i = 0; i < full; ++i) chunks[i] = ~u64(0);
         std::size_t rem = nbits & 63u;
@@ -132,6 +133,8 @@ struct dynamic_bitset {
     }
 
     dynamic_bitset &flip() {
+        if (nbits==0) return *this;
+        ensure_capacity(nbits);
         for (auto &x: chunks) x = ~x;
         mask_to_size();
         return *this;
